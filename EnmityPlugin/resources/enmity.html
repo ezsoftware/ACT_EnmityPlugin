@@ -157,14 +157,13 @@
 			language = languages[langKey];
 		}
 	}
-	setLanguage('eng');
-	var DEBUG = true;
+	var DEBUG = false;
     //
     // プラグイン側から以下のような ActXiv オブジェクトとしてデータが提供される
     //
     // ダミーデータ(デバッグ用)
     var ActXivDebug = {
-	  "Language": "eng",
+	  "Language": "jpn",
       "Enmity": {
         "Target": { 'Name': 'マンドラゴラ・プライム', 'HPPercent': 17.74, 'CurrentHP': 221004, 'MaxHP': 1245321, 'Distance': 3.02, 'EffectiveDistance': 2, 'HorizontalDistance': 2.32 },
         // "Target": null,
@@ -329,12 +328,12 @@
 
     // onOverlayDataUpdate イベントを購読
     document.addEventListener("onOverlayDataUpdate", function (e) {
-	  DEBUG = false;
       update(e.detail);
     });
 
     // 表示要素の更新
     function update(data) {
+	  setLanguage(data.Language);
       updateTarget(data);
       updateEnmityList(data);
       applyEffect(data);
@@ -407,7 +406,7 @@
         body.appendChild(box);
       });
     }
-	
+
 	if(DEBUG) {
 		window.addEventListener('load', function() {
 			update(ActXivDebug);
