@@ -78,16 +78,13 @@
       <HintPath>..\Thirdparty\ACT\Advanced Combat Tracker.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="FFXIV_ACT_Plugin">
-      <HintPath>..\Thirdparty\FFXIV_ACT_Plugin\FFXIV_ACT_Plugin.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="HtmlRenderer">
       <HintPath>..\Thirdparty\OverlayPlugin\HtmlRenderer.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="OverlayPlugin">
       <HintPath>..\Thirdparty\OverlayPlugin\OverlayPlugin.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="OverlayPlugin.Common">
       <HintPath>..\Thirdparty\OverlayPlugin\OverlayPlugin.Common.dll</HintPath>
