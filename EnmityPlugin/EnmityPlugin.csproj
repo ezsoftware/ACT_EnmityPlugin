@@ -122,7 +122,9 @@
       <DependentUpon>EnmityOverlayConfigPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="EnmityOverlayConfig.cs" />
-    <Compile Include="FFXIVPluginHelper.cs" />
+    <Compile Include="FFXIVMemory.cs" />
+    <Compile Include="FFXIVObject.cs" />
+    <Compile Include="FFXIVProcessHelper.cs" />
     <Compile Include="Messages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -146,7 +148,19 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="resources\aggrolist.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\aggrolist.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\aggrolist.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="resources\enmity.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="resources\targetinfo.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
