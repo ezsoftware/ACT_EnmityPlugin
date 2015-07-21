@@ -34,9 +34,9 @@ namespace Tamagawa.EnmityPlugin
         private const string charmapSignature64 = "48C1E8033DFFFF0000742B3DA80100007324488D0D";
         private const string targetSignature32  = "750E85D2750AB9";
         private const string targetSignature64  = "29017520483935";
-        private const string enmitySignature32  = "02E801A83300B9";
+        private const string enmitySignature32  = "E801A83300B9";
         private const string enmitySignature64  = "488D0DB5C13C01E820EF3F00488D0D";
-        private const string aggroSignature32   = "02E84DCC2D00B9";
+        private const string aggroSignature32   = "E84DCC2D00B9";
         private const string aggroSignature64   = "3B01E8948E3800488D0D";
         private const int charmapOffset32 = 0;
         private const int charmapOffset64 = 0;
@@ -513,6 +513,7 @@ namespace Tamagawa.EnmityPlugin
             int num = 0;
             List<AggroEntry> result = new List<AggroEntry>();
             List<Combatant> combatantList = Combatants;
+            Combatant mychar = GetSelfCombatant();
 
             /// 一度に全部読む
             byte[] buffer = GetByteArray(aggroAddress, 32 * 72 + 2);
@@ -551,6 +552,24 @@ namespace Tamagawa.EnmityPlugin
                         entry.Name = c.Name;
                         entry.MaxHP = c.MaxHP;
                         entry.CurrentHP = c.CurrentHP;
+                        if (c.TargetID > 0)
+                        {
+                            Combatant t = combatantList.Find(x => x.ID == c.TargetID);
+                            if (t != null)
+                            {
+                                entry.Target = new EnmityEntry()
+                                {
+                                    ID = t.ID,
+                                    Name = t.Name,
+                                    Job = t.Job,
+                                    OwnerID = t.OwnerID,
+                                    isMe = mychar.ID == t.ID ? true : false,
+                                    Enmity = 0,
+                                    HateRate = 0
+                                };
+                            }
+                        }
+
                     }
                     result.Add(entry);
                 }
