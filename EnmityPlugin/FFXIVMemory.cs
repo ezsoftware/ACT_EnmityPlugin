@@ -1,41 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Advanced_Combat_Tracker;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Tamagawa.EnmityPlugin
 {
     public class FFXIVMemory : IDisposable
     {
+        public class MemoryScanException : Exception
+        {
+            public MemoryScanException() : base(Messages.FailedToSigScan) { }
+            public MemoryScanException(string message) : base(message) { }
+            public MemoryScanException(string message, System.Exception inner) : base(message, inner) { }
+            protected MemoryScanException(System.Runtime.Serialization.SerializationInfo info,
+                System.Runtime.Serialization.StreamingContext context){ }
+        }
+
         private Thread _thread;
-        private List<Combatant> _Combatants = new List<Combatant>();
-        internal List<Combatant> Combatants
-        {
-            get
-            {
-                return this._Combatants;
-            }
-        }
-        private object _CombatantsLock = new object();
-        internal object CombatantsLock
-        {
-            get
-            {
-                return this._CombatantsLock;
-            }
-        }
+        internal List<Combatant> Combatants { get; private set; }
+        internal object CombatantsLock => new object();
 
         private const string charmapSignature32 = "81FEFFFF0000743581FE58010000732D8B3CB5";
         private const string charmapSignature64 = "48C1E8033DFFFF0000742B3DA80100007324488D0D";
         private const string targetSignature32  = "750E85D2750AB9";
         private const string targetSignature64  = "29017520483935";
-        private const string enmitySignature32  = "E831AA3300B9";
-        private const string enmitySignature64  = "488D0D????????E8D0F23F00488D0D";
+        private const string enmitySignature32  = "E8??E33000B9??A4????E8????3300B9";
+        private const string enmitySignature64  = "0CA43C00488D0D????3C01E8????3F00488D0D";
         private const int charmapOffset32 = 0;
         private const int charmapOffset64 = 0;
         private const int targetOffset32  = 88;
@@ -68,15 +58,19 @@ namespace Tamagawa.EnmityPlugin
             {
                 _mode = FFXIVClientMode.Unknown;
             }
-            overlay.LogInfo("Attached process: {0} ({1})",
+            overlay.LogDebug("Attatching process: {0} ({1})",
                 process.Id, (_mode == FFXIVClientMode.FFXIV_32 ? "dx9" : "dx11"));
 
             this.getPointerAddress();
+
+            Combatants = new List<Combatant>();
 
             _thread = new Thread(new ThreadStart(doScanCombatants));
             _thread.IsBackground = true;
             _thread.Start();
 
+            overlay.LogInfo("Attatched process successfully, pid: {0} ({1})",
+                process.Id, (_mode == FFXIVClientMode.FFXIV_32 ? "dx9" : "dx11"));
         }
 
         public void Dispose()
@@ -101,7 +95,7 @@ namespace Tamagawa.EnmityPlugin
                 c = this._getCombatantList();
                 lock (CombatantsLock)
                 {
-                    this._Combatants = c;
+                    this.Combatants = c;
                 }
             }
         }
@@ -152,6 +146,7 @@ namespace Tamagawa.EnmityPlugin
             int targetOffset = targetOffset32;
             int charmapOffset = charmapOffset32;
             int enmityOffset = enmityOffset32;
+            List<string> fail = new List<string>();
 
             bool bRIP = false;
 
@@ -178,7 +173,7 @@ namespace Tamagawa.EnmityPlugin
             }
             if (charmapAddress == IntPtr.Zero)
             {
-                _overlay.LogError(Messages.FailedToSigScan, "CombatantList");
+                fail.Add(nameof(charmapAddress));
                 success = false;
             }
 
@@ -195,7 +190,7 @@ namespace Tamagawa.EnmityPlugin
             }
             if (enmityAddress == IntPtr.Zero)
             {
-                _overlay.LogError(Messages.FailedToSigScan, "Enmity");
+                fail.Add(nameof(enmityAddress));
                 success = false;
             }
 
@@ -211,22 +206,24 @@ namespace Tamagawa.EnmityPlugin
             }
             if (targetAddress == IntPtr.Zero)
             {
-                _overlay.LogError(Messages.FailedToSigScan, "Target");
+                fail.Add(nameof(targetAddress));
                 success = false;
             }
 
             _overlay.LogDebug("charmapAddress: 0x{0:X}", charmapAddress.ToInt64());
             _overlay.LogDebug("enmityAddress: 0x{0:X}", enmityAddress.ToInt64());
             _overlay.LogDebug("targetAddress: 0x{0:X}", targetAddress.ToInt64());
-
-            if (success || charmapAddress != IntPtr.Zero)
+            Combatant c = GetSelfCombatant();
+            if (c != null)
             {
-                Combatant c = GetSelfCombatant();
-                if (c != null)
-                {
-                    _overlay.LogDebug("MyCharacter: '{0}' ({1})", c.Name, c.ID);
-                }
+                _overlay.LogDebug("MyCharacter: '{0}' ({1})", c.Name, c.ID);
             }
+
+            if (!success)
+            {
+                throw new MemoryScanException(String.Format(Messages.FailedToSigScan, String.Join(",", fail)));
+            }
+
             return success;
         }
 

@@ -1,13 +1,7 @@
-﻿using Advanced_Combat_Tracker;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Resources;
-using System.Runtime.Serialization.Json;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using RainbowMage.OverlayPlugin;
 
@@ -59,7 +53,15 @@ namespace Tamagawa.EnmityPlugin
                 if ((_memory == null && p != null) ||
                     (_memory != null && p != null && p.Id != _memory.process.Id))
                 {
-                    _memory = new FFXIVMemory(this, p);
+                    try {
+                        _memory = new FFXIVMemory(this, p);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError(ex.Message);
+                        suppress_log = true;
+                        _memory = null;
+                    }
                 }
                 else if (_memory != null && p == null)
                 {
@@ -71,24 +73,29 @@ namespace Tamagawa.EnmityPlugin
 
         public void LogDebug(string format, params object[] args)
         {
+            string prefix = isDebug ? "DEBUG: " : "";
             LogLevel level = isDebug ? LogLevel.Info : LogLevel.Debug;
-            Log(level, format, args);
+            Log(level, prefix + format, args);
         }
 
         public void LogError(string format, params object[] args)
         {
-            Log(LogLevel.Error, format, args);
+            if (suppress_log == false)
+            {
+                Log(LogLevel.Error, format, args);
+            }
         }
 
         public void LogWarning(string format, params object[] args)
         {
-            Log(LogLevel.Warning, format, args);
+            if (suppress_log == false)
+            {
+                Log(LogLevel.Warning, format, args);
+            }
         }
 
         public void LogInfo(string format, params object[] args)
-        {
-            Log(LogLevel.Info, format, args);
-        }
+            => Log(LogLevel.Info, format, args);
 
         /// <summary>
         /// プロセスの有効性をチェック
@@ -136,10 +143,7 @@ namespace Tamagawa.EnmityPlugin
             }
             catch (Exception ex)
             {
-                if (suppress_log == false)
-                {
-                    LogError(ex.Message);
-                }
+                LogError(ex.Message);
             }
         }
 
@@ -173,7 +177,7 @@ namespace Tamagawa.EnmityPlugin
             }
             catch (Exception ex)
             {
-                LogError("Update: {1}", this.Name, ex);
+                LogError("Update: {0} {1}", this.Name, ex.ToString());
             }
         }
 
@@ -310,10 +314,8 @@ namespace Tamagawa.EnmityPlugin
         }
 
         private string CreateEventDispatcherScript()
-        {
-            return "var ActXiv = { 'Enmity': " + this.CreateJsonData() + " };\n" +
-                   "document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: ActXiv }));";
-        }
+            => "var ActXiv = { 'Enmity': " + this.CreateJsonData() + " };\n" +
+               "document.dispatchEvent(new CustomEvent('onOverlayDataUpdate', { detail: ActXiv }));";
 
         /// <summary>
         /// スキャン間隔を更新する
@@ -355,10 +357,7 @@ namespace Tamagawa.EnmityPlugin
             }
         }
 
-        protected override void InitializeTimer()
-        {
-            base.InitializeTimer();
-        }
+        protected override void InitializeTimer() => base.InitializeTimer();
 
         //// JSON用オブジェクト
         private class EnmityObject
