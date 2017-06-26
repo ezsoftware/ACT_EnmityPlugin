@@ -27,6 +27,8 @@ var JobRole = {
  ROG: 'DPS',
  NIN: 'DPS',
  MCH: 'DPS',
+ SAM: 'DPS',
+ RDM: 'DPS'
 };
 
 // ターゲットしてないときのダミーデータ
@@ -84,6 +86,11 @@ var enmity = new Vue({
       this.entries = e.detail.Enmity.Entries;
       this.target  = e.detail.Enmity.Target ? e.detail.Enmity.Target : noTarget;
       this.hide = (hideNoTarget && e.detail.Enmity.Target == null);
+      if(this.hide){
+        document.getElementById("enmity").style.visibility = "hidden";
+      }else{
+        document.getElementById("enmity").style.visibility = "visible";
+      }
     },
     updateState: function(e) {
       this.locked = e.detail.isLocked;
