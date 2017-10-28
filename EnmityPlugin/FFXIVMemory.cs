@@ -22,18 +22,18 @@ namespace Tamagawa.EnmityPlugin
         internal List<Combatant> Combatants { get; private set; }
         internal object CombatantsLock => new object();
 
-        private const string charmapSignature32 = "81FEFFFF0000743581FE58010000732D8B3CB5";
+        private const string charmapSignature32 = "81FEFFFF0000743581FE58010000732D8B3CB5"; // not work in 4.1
         private const string charmapSignature64 = "488b03488bcbff90a0000000888391000000488d0d";
-        private const string targetSignature32  = "750E85D2750AB9";
-        private const string targetSignature64  = "1E017520483935";
-        private const string enmitySignature32  = "E8??E33000B9??A4????E8????3300B9";
-        private const string enmitySignature64  = "0CA43C00488D0D????3C01E8????3F00488D0D";
-        private const int charmapOffset32 = 0;
+        private const string targetSignature32  = "750E85D2750AB9"; // not work in 4.1
+        private const string targetSignature64  = "32c984c9410f44c4448be0e9????????488d0d";
+        private const string enmitySignature32  = "E8??E33000B9??A4????E8????3300B9"; // not work in 4.1
+        private const string enmitySignature64  = "83f9ff7412448b048e8bd3488d0d";
+        private const int charmapOffset32 = 0; // not work in 4.1
         private const int charmapOffset64 = 16;
-        private const int targetOffset32  = 88;
-        private const int targetOffset64  = 0;
-        private const int enmityOffset32  = 0x4A58;
-        private const int enmityOffset64  = 0x4A38;
+        private const int targetOffset32  = 88; // not work in 4.1
+        private const int targetOffset64  = 144;
+        private const int enmityOffset32  = 0x4A58; // not work in 4.1
+        private const int enmityOffset64  = -4648;
 
         private EnmityOverlay _overlay;
         private Process _process;
@@ -145,7 +145,7 @@ namespace Tamagawa.EnmityPlugin
             bool success = true;
             string charmapSignature = charmapSignature32;
             string targetSignature = targetSignature32;
-            // string enmitySignature = enmitySignature32;
+            string enmitySignature = enmitySignature32;
             int targetOffset = targetOffset32;
             int charmapOffset = charmapOffset32;
             int enmityOffset = enmityOffset32;
@@ -160,7 +160,7 @@ namespace Tamagawa.EnmityPlugin
                 charmapOffset = charmapOffset64;
                 targetSignature = targetSignature64;
                 charmapSignature = charmapSignature64;
-                //enmitySignature = enmitySignature64;
+                enmitySignature = enmitySignature64;
                 enmityOffset = enmityOffset64;
             }
 
@@ -181,9 +181,9 @@ namespace Tamagawa.EnmityPlugin
             }
 
             // ENMITY
-            enmityAddress = IntPtr.Add(charmapAddress, enmityOffset);
-            aggroAddress = IntPtr.Add(enmityAddress, 0x900 + 8);
-            /*
+            //enmityAddress = IntPtr.Add(charmapAddress, enmityOffset);
+            //aggroAddress = IntPtr.Add(enmityAddress, 0x900 + 8);
+            
             list = SigScan(enmitySignature, 0, bRIP);
             if (list == null || list.Count == 0)
             {
@@ -199,7 +199,8 @@ namespace Tamagawa.EnmityPlugin
                 fail.Add(nameof(enmityAddress));
                 success = false;
             }
-            */
+            aggroAddress = IntPtr.Add(enmityAddress, 0x900 + 8);
+
             /// TARGET
             list = SigScan(targetSignature, 0, bRIP);
             if (list == null || list.Count == 0)
@@ -282,15 +283,30 @@ namespace Tamagawa.EnmityPlugin
         /// </summary>
         public Combatant GetAnchorCombatant()
         {
-            Combatant self = null;
+            Combatant target = null;
+            IntPtr address = IntPtr.Zero;
+
             int offset = _mode == FFXIVClientMode.FFXIV_64 ? 0x08 : 0x04;
-            IntPtr address = (IntPtr)GetUInt32(targetAddress + offset);
-            if (address.ToInt64() > 0)
+            byte[] source = GetByteArray(IntPtr.Add(targetAddress, offset), 128);
+            unsafe
             {
-                byte[] source = GetByteArray(address, 0x3F40);
-                self = GetCombatantFromByteArray(source);
+                if (_mode == FFXIVClientMode.FFXIV_64)
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int64*)p);
+                }
+                else
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int32*)p);
+                }
             }
-            return self;
+            if (address.ToInt64() <= 0)
+            {
+                return null;
+            }
+
+            source = GetByteArray(address, 0x3F40);
+            target = GetCombatantFromByteArray(source);
+            return target;
         }
 
         /// <summary>
@@ -298,15 +314,30 @@ namespace Tamagawa.EnmityPlugin
         /// </summary>
         public Combatant GetFocusCombatant()
         {
-            Combatant self = null;
+            Combatant target = null;
+            IntPtr address = IntPtr.Zero;
+
             int offset = _mode == FFXIVClientMode.FFXIV_64 ? 0x78 : 0x44;
-            IntPtr address = (IntPtr)GetUInt32(targetAddress + offset);
-            if (address.ToInt64() > 0)
+            byte[] source = GetByteArray(IntPtr.Add(targetAddress, offset), 128);
+            unsafe
             {
-                byte[] source = GetByteArray(address, 0x3F40);
-                self = GetCombatantFromByteArray(source);
+                if (_mode == FFXIVClientMode.FFXIV_64)
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int64*)p);
+                }
+                else
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int32*)p);
+                }
             }
-            return self;
+            if (address.ToInt64() <= 0)
+            {
+                return null;
+            }
+
+            source = GetByteArray(address, 0x3F40);
+            target = GetCombatantFromByteArray(source);
+            return target;
         }
 
         /// <summary>
@@ -314,15 +345,30 @@ namespace Tamagawa.EnmityPlugin
         /// </summary>
         public Combatant GetHoverCombatant()
         {
-            Combatant self = null;
+            Combatant target = null;
+            IntPtr address = IntPtr.Zero;
+
             int offset = _mode == FFXIVClientMode.FFXIV_64 ? 0x48 : 0x24;
-            IntPtr address = (IntPtr)GetUInt32(targetAddress + offset);
-            if (address.ToInt64() > 0)
+            byte[] source = GetByteArray(IntPtr.Add(targetAddress, offset), 128);
+            unsafe
             {
-                byte[] source = GetByteArray(address, 0x3F40);
-                self = GetCombatantFromByteArray(source);
+                if (_mode == FFXIVClientMode.FFXIV_64)
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int64*)p);
+                }
+                else
+                {
+                    fixed (byte* p = source) address = new IntPtr(*(Int32*)p);
+                }
             }
-            return self;
+            if (address.ToInt64() <= 0)
+            {
+                return null;
+            }
+
+            source = GetByteArray(address, 0x3F40);
+            target = GetCombatantFromByteArray(source);
+            return target;
         }
 
         /// <summary>
@@ -392,17 +438,12 @@ namespace Tamagawa.EnmityPlugin
                 combatant.PosZ = *(Single*)&p[offset + 4];
                 combatant.PosY = *(Single*)&p[offset + 8];
 
-                offset = (_mode == FFXIVClientMode.FFXIV_64) ? 448 : 392;
+                offset = (_mode == FFXIVClientMode.FFXIV_64) ? 0x1620 : 2520;
                 combatant.TargetID = *(uint*)&p[offset];
-                if (combatant.TargetID == 3758096384u)
-                {
-                    offset = (_mode == FFXIVClientMode.FFXIV_64) ? 2448 : 2520;
-                    combatant.TargetID = *(uint*)&p[offset];
-                }
 
                 if (combatant.type == ObjectType.PC || combatant.type == ObjectType.Monster)
                 {
-                    offset = (_mode == FFXIVClientMode.FFXIV_64) ? 0x1684 : 0x1198;
+                    offset = (_mode == FFXIVClientMode.FFXIV_64) ? 0x16A0 : 0x1198;
                     combatant.Job       = p[offset + 0x3E];
                     combatant.Level     = p[offset + 0x40];
                     combatant.CurrentHP = *(int*)&p[offset + 8];
