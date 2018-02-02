@@ -110,7 +110,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="Xilium.CefGlue, Version=3.2272.2035.0, Culture=neutral, PublicKeyToken=6235298024de30d5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Thirdparty\OverlayPlugin\Xilium.CefGlue.dll</HintPath>
+      <HintPath>..\..\..\OverlayPlugin\BuildX64\Xilium.CefGlue.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
