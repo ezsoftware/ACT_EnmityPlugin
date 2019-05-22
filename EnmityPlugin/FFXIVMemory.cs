@@ -376,9 +376,9 @@ namespace Tamagawa.EnmityPlugin
                 combatant.PosY = *(Single*)&p[offset + 8];
                 combatant.Heading = *(Single*)&p[offset + 16];
 
-                combatant.TargetID = *(uint*)&p[5744];
+                combatant.TargetID = *(uint*)&p[5832];
 
-                offset = 5880;
+                offset = 5968;
                 if (combatant.type == ObjectType.PC || combatant.type == ObjectType.Monster)
                 {
                     combatant.CurrentHP = *(int*)&p[offset + 8];
