@@ -120,7 +120,8 @@ namespace Tamagawa.EnmityPlugin
         DRK, // 32
         AST, // 33
         SAM, // 34
-        RDM  // 35
+        RDM, // 35
+        BLU  // 36
     }
 
     //// 敵視されてるキャラエントリ
@@ -179,7 +180,7 @@ namespace Tamagawa.EnmityPlugin
     public class Status
     {
         //public Combatant SourceCombatant;
-        public short StatusID;
+        public ushort StatusID;
         public string StatusName;
         public byte Stacks;
         public float Duration;
@@ -192,7 +193,7 @@ namespace Tamagawa.EnmityPlugin
     }
     public class Cast
     {
-        public short ID;
+        public ushort ID;
         public uint TargetID;
         public float Progress;
         public float Time;
