@@ -61,8 +61,8 @@ namespace Tamagawa.EnmityPlugin
         private const int combatantStructureOffset_CurrentMP = 5984;
         private const int combatantStructureOffset_MaxMP = 5988;
         private const int combatantStructureOffset_CurrentTP = 5992;
-        private const int combatantStructureOffset_Job = 6032;
-        private const int combatantStructureOffset_Level = 6034;
+        private const int combatantStructureOffset_Job = 6364;
+        private const int combatantStructureOffset_Level = 6366;
 
         private const int combatantStructureOffset_StatusOffset = 6168;
         private const int combatantStructureOffset_StatusItemSize = 12;
